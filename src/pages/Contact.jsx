@@ -95,10 +95,10 @@ export default function Contact() {
         >
           <iframe
             title="Ubicación FORNO pizzeria"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.9!2d-58.43369!3d-34.58891!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5795f19fd63%3A0x5f3b4ca7a9498a0a!2sArmenia%201245%2C%20C1414%20CABA!5e0!3m2!1ses-419!2sar!4v1782171000000!5m2!1ses-419!2sar"
-            width="600"
-            height="450"
-            style={{ border: 0 }}
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.9!2d-58.43369!3d-34.58891!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb5795f19fd63%3A0x5f3b4ca7a9498a0a!2sArmenia%201245%2C%20C1414%20CABA!5e0!3m2!1ses-419!2sar!4v1782171000000!5m2!1ses-419!2sar "
+            width="100%"
+            height="100%"
+            style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg)' }}
             allowFullScreen=""
             loading="lazy"
           />
