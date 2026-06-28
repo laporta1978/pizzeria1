@@ -49,18 +49,20 @@ const AuthenticatedApp = () => {
   return (
     <CartProvider>
       <Routes>
+        {/* Rutas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/menu" element={<Menu />} />
-            <Route path="/pizza/:id" element={<PizzaDetail />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/nosotros" element={<About />} />
-            <Route path="/contacto" element={<Contact />} />
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/pizza/:id" element={<PizzaDetail />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/nosotros" element={<About />} />
+          <Route path="/contacto" element={<Contact />} />
+          {/* Solo Admin requiere login */}
+          <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
             <Route path="/admin" element={<Admin />} />
           </Route>
         </Route>
