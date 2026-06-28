@@ -1,23 +1,38 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { Home } from "lucide-react";
 
 export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-4">
             <Icon className="w-7 h-7 text-primary-foreground" aria-hidden="true" />
           </div>
           <p className="font-display text-sm font-bold tracking-[0.3em] uppercase text-primary mb-1">FORNO</p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-          {subtitle && <p className="text-muted-foreground mt-2">{subtitle}</p>}
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{title}</h1>
+          {subtitle && <p className="text-gray-500 mt-2">{subtitle}</p>}
         </div>
-        <div className="bg-card rounded-2xl shadow-sm border border-border p-8">
+
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
           {children}
         </div>
+
         {footer && (
-          <p className="text-center text-sm text-muted-foreground mt-6">{footer}</p>
+          <p className="text-center text-sm text-gray-500 mt-6">{footer}</p>
         )}
+
+        {/* Volver a la pizzería */}
+        <div className="text-center mt-4">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary transition-colors"
+          >
+            <Home className="w-3.5 h-3.5" />
+            Volver a la pizzería
+          </Link>
+        </div>
       </div>
     </div>
   );
