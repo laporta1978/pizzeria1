@@ -15,5 +15,10 @@ Para generar la build de producción:
 npm run build
 npm run preview
 
+pagina web
 usuario: gastontalento@gmail.com
 contraseña: 12345678
+
+admin
+usuario:admin@talentotech.com
+contraseñas:123456
