@@ -21,11 +21,8 @@ Construido con **React + Vite** y **Firebase** (Auth + Firestore), desplegado en
 - [Despliegue en Vercel](#-despliegue-en-vercel)
 - [Autor](#-autor)
 
----
 
-## 🔗 Demo
 
-🌐 **Producción:** _agregá acá tu URL de Vercel_
 
 ---
 
@@ -74,11 +71,8 @@ cd TU_REPOSITORIO
 npm install
 ```
 
-### 3. Configurá las variables de entorno
 
-Creá un archivo `.env` en la raíz del proyecto (ver sección [Variables de entorno](#-variables-de-entorno) más abajo).
-
-### 4. Iniciá el servidor de desarrollo
+### 3. Iniciá el servidor de desarrollo
 
 ```bash
 npm run dev
@@ -133,17 +127,6 @@ service cloud.firestore {
 }
 ```
 
-Click en **"Publicar"**.
-
-### Paso 5 — Crear el usuario administrador
-
-1. Andá a **Authentication → Users → Agregar usuario**
-2. Cargá el email y contraseña que vas a usar para acceder al panel `/admin-login`
-3. Ese mismo email tiene que coincidir con la constante `ADMIN_EMAIL` definida en:
-   - `src/pages/AdminLogin.jsx`
-   - `src/App.jsx`
-
----
 
 ## 🔐 Variables de entorno
 
@@ -158,7 +141,7 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
 VITE_FIREBASE_APP_ID=tu_app_id
 ```
 
-> ⚠️ **Importante:** el archivo `.env` no se sube al repositorio (está en `.gitignore`). Si vas a desplegar en Vercel, tenés que cargar estas mismas variables en **Vercel → Settings → Environment Variables**.
+
 
 ---
 
@@ -215,32 +198,7 @@ pizzeria1/
 
 ---
 
-## 👤 Roles de usuario
 
-| Ruta              | Acceso                                                | Descripción                                  |
-|--------------------|--------------------------------------------------------|-----------------------------------------------|
-| `/`, `/menu`, `/nosotros`, `/contacto` | Público                            | Navegación libre del catálogo                |
-| `/login`, `/register` | Público                                            | Registro/login de clientes                   |
-| `/checkout`        | Requiere sesión de cliente                            | Confirmación de pedido                       |
-| `/admin-login`     | Público                                                | Login exclusivo para administradores         |
-| `/admin`           | Requiere sesión con el email definido como `ADMIN_EMAIL` | Gestión de productos y stock              |
-
----
-
-## ☁️ Despliegue en Vercel
-
-1. Subí el proyecto a un repositorio de GitHub
-2. Entrá a [vercel.com](https://vercel.com/) → **"Add New Project"**
-3. Importá el repositorio
-4. Cargá las [variables de entorno](#-variables-de-entorno) en **Settings → Environment Variables**
-5. Click en **"Deploy"**
-
-### Después del primer deploy
-
-Agregá el dominio de Vercel a los dominios autorizados de Firebase:
-
-1. **Firebase Console → Authentication → Settings → Dominios autorizados**
-2. Click en **"Agregar dominio"** y pegá tu URL de Vercel (ej. `tu-proyecto.vercel.app`)
 
 
 
