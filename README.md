@@ -90,42 +90,7 @@ http://localhost:5173
 
 Este proyecto necesita un proyecto de Firebase activo con **Authentication** y **Firestore** habilitados.
 
-### Paso 1 — Crear el proyecto
 
-1. Entrá a [console.firebase.google.com](https://console.firebase.google.com/)
-2. Click en **"Agregar proyecto"** y seguí los pasos
-3. Una vez creado, andá a **Configuración del proyecto → General** y registrá una app web (ícono `</>`)
-4. Copiá el objeto `firebaseConfig` que te genera (lo vas a necesitar para el `.env`)
-
-### Paso 2 — Habilitar Authentication
-
-1. En el menú lateral, click en **Authentication → Sign-in method**
-2. Habilitá los proveedores:
-   - **Correo electrónico/contraseña**
-   - **Google**
-
-### Paso 3 — Crear la base de datos Firestore
-
-1. En el menú lateral, click en **Firestore Database**
-2. Click en **"Crear base de datos"**
-3. Elegí **Edición Standard**
-4. Seleccioná la región más cercana (ej. `southamerica-east1` para Argentina)
-5. Elegí **"Comenzar en modo de prueba"**
-
-### Paso 4 — Configurar las reglas de seguridad
-
-En la pestaña **Reglas** de Firestore, pegá:
-
-```js
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-```
 
 
 ## 🔐 Variables de entorno
