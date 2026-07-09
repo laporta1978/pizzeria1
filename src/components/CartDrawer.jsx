@@ -126,7 +126,7 @@ export default function CartDrawer() {
                         {/* Qty control */}
                         <div className="flex items-center gap-1.5 bg-secondary rounded-full px-1 py-0.5">
                           <button
-                            onClick={() => updateQuantity(item.key, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
                             className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-primary/20 hover:text-primary transition-colors"
                           >
                             <Minus className="w-3 h-3" />
@@ -140,7 +140,7 @@ export default function CartDrawer() {
                             {item.quantity}
                           </motion.span>
                           <button
-                            onClick={() => updateQuantity(item.key, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
                             className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-primary/20 hover:text-primary transition-colors"
                           >
                             <Plus className="w-3 h-3" />
