@@ -136,6 +136,7 @@ export default function CartDrawer() {
                             initial={{ scale: 1.4 }}
                             animate={{ scale: 1 }}
                             className="text-xs font-bold w-5 text-center tabular-nums"
+                            style={{ color: '#FACC15' }}
                           >
                             {item.quantity}
                           </motion.span>
