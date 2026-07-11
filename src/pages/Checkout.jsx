@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { useCart } from '@/lib/cartContext';
 import { toast } from 'sonner';
 import { deductStock } from '@/lib/stockManager';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/api/firebaseClient';
 
 // ─── Cupones disponibles ───────────────────────────────────────────────────────
 const COUPONS = {
@@ -51,20 +53,31 @@ export default function Checkout() {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     setCouponError('');
     setCouponLoading(true);
-    setTimeout(() => {
+    try {
       const code = couponInput.trim().toUpperCase();
-      if (COUPONS[code]) {
-        setAppliedCoupon({ ...COUPONS[code], code });
-        toast.success(`✅ Cupón "${code}" aplicado — ${COUPONS[code].label}`);
+      // Primero buscar en Firestore
+      let found = null;
+      try {
+        const snap = await getDocs(collection(db, 'coupons'));
+        const all = snap.docs.map(d => ({ ...d.data(), code: d.id }));
+        found = all.find(c => c.code === code && c.active !== false);
+      } catch {
+        // Si Firestore falla, usar cupones locales
+        found = COUPONS[code] ? { ...COUPONS[code], code } : null;
+      }
+      if (found) {
+        setAppliedCoupon(found);
+        toast.success(`✅ Cupón "${code}" aplicado — ${found.label}`);
         setCouponInput('');
       } else {
         setCouponError('Cupón inválido o expirado');
       }
+    } finally {
       setCouponLoading(false);
-    }, 600);
+    }
   };
 
   const handleRemoveCoupon = () => {

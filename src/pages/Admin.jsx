@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useProducts } from '@/lib/useProducts';
+import { useCoupons } from '@/lib/useCoupons';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Plus, Pencil, Trash2, Save, X, PackageX, Package,
-  Flame, Leaf, AlertTriangle, Loader2
+  Flame, Leaf, AlertTriangle, Loader2, Tag,
+  ToggleLeft, ToggleRight, ShoppingBag
 } from 'lucide-react';
 
 const EMPTY_FORM = {
@@ -24,12 +26,17 @@ const EMPTY_FORM = {
 export default function Admin() {
   const { user } = useAuth();
   const { products, loading, updateProduct, addProduct, deleteProduct } = useProducts();
+  const { coupons, addCoupon, toggleCoupon, deleteCoupon } = useCoupons();
+
+  const [activeTab, setActiveTab] = useState('products');
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [stockEdit, setStockEdit] = useState({});
+  const [couponForm, setCouponForm] = useState({ code: '', type: 'percent', value: '', label: '' });
+  const [couponSaving, setCouponSaving] = useState(false);
 
   const filtered = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -49,11 +56,7 @@ export default function Admin() {
   };
 
   // --- Formulario producto ---
-  const openNew = () => {
-    setForm(EMPTY_FORM);
-    setEditingId(null);
-    setShowForm(true);
-  };
+  const openNew = () => { setForm(EMPTY_FORM); setEditingId(null); setShowForm(true); };
   const openEdit = (p) => {
     setForm({
       name: p.name, subtitle: p.subtitle || '', description: p.description || '',
@@ -66,7 +69,6 @@ export default function Admin() {
     setShowForm(true);
   };
   const closeForm = () => { setShowForm(false); setEditingId(null); };
-
   const handleFormChange = (field, val) => setForm(f => ({ ...f, [field]: val }));
   const handleSizeChange = (idx, field, val) => {
     setForm(f => {
@@ -75,7 +77,6 @@ export default function Admin() {
       return { ...f, sizes };
     });
   };
-
   const handleSave = async () => {
     if (!form.name.trim()) return;
     setSaving(true);
@@ -94,7 +95,6 @@ export default function Admin() {
     setSaving(false);
     closeForm();
   };
-
   const handleDelete = async (id, name) => {
     if (!confirm(`¿Eliminar "${name}"?`)) return;
     await deleteProduct(id);
@@ -106,124 +106,277 @@ export default function Admin() {
     return 'text-green-600';
   };
 
+  const handleAddCoupon = async () => {
+    setCouponSaving(true);
+    await addCoupon({ ...couponForm, value: Number(couponForm.value), active: true });
+    setCouponForm({ code: '', type: 'percent', value: '', label: '' });
+    setCouponSaving(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 pt-24 pb-10">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8 pt-4">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold font-display">Panel de Administración</h1>
             <p className="text-muted-foreground text-sm mt-1">Hola, {user?.email}</p>
           </div>
-          <Button onClick={openNew} size="lg" className="gap-2 text-base px-6 py-3">
-            <Plus className="w-5 h-5" /> Agregar nuevo producto
-          </Button>
+          {activeTab === 'products' && (
+            <Button onClick={openNew} size="lg" className="gap-2">
+              <Plus className="w-5 h-5" /> Agregar nuevo producto
+            </Button>
+          )}
         </div>
 
-        {/* Alerta sin stock */}
-        {products.some(p => p.stock === 0) && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3 text-red-700">
-            <AlertTriangle className="w-5 h-5 shrink-0" />
-            <span className="text-sm font-medium">
-              {products.filter(p => p.stock === 0).map(p => p.name).join(', ')} — sin stock
-            </span>
-          </div>
-        )}
+        {/* Tabs */}
+        <div className="flex gap-2 mb-8 border-b border-border">
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'products'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" /> Productos
+          </button>
+          <button
+            onClick={() => setActiveTab('coupons')}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'coupons'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Tag className="w-4 h-4" /> Cupones de descuento
+          </button>
+        </div>
 
-        {/* Buscador */}
-        <Input
-          placeholder="Buscar producto..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="mb-6 max-w-sm"
-        />
+        {/* ── PESTAÑA PRODUCTOS ── */}
+        {activeTab === 'products' && (
+          <div>
+            {/* Alerta sin stock */}
+            {products.some(p => p.stock === 0) && (
+              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3 text-red-700">
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+                <span className="text-sm font-medium">
+                  {products.filter(p => p.stock === 0).map(p => p.name).join(', ')} — sin stock
+                </span>
+              </div>
+            )}
 
-        {/* Tabla */}
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : (
-          <div className="rounded-xl border border-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Producto</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Categoría</th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Precio base</th>
-                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">Stock</th>
-                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map(p => (
-                  <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {p.image && (
-                          <img src={p.image} alt={p.name}
-                            className="w-10 h-10 rounded-lg object-cover shrink-0" />
-                        )}
-                        <div>
-                          <p className="font-medium">{p.name}</p>
-                          <p className="text-xs text-muted-foreground">{p.subtitle}</p>
-                          <div className="flex gap-1 mt-0.5">
-                            {p.spicy && <Flame className="w-3 h-3 text-orange-500" />}
-                            {p.vegetarian && <Leaf className="w-3 h-3 text-green-500" />}
+            {/* Buscador */}
+            <Input
+              placeholder="Buscar producto..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="mb-6 max-w-sm"
+            />
+
+            {/* Tabla */}
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Producto</th>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Categoría</th>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Precio base</th>
+                      <th className="text-center px-4 py-3 font-medium text-muted-foreground">Stock</th>
+                      <th className="text-center px-4 py-3 font-medium text-muted-foreground">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filtered.map(p => (
+                      <tr key={p.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            {p.image && (
+                              <img src={p.image} alt={p.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                            )}
+                            <div>
+                              <p className="font-medium">{p.name}</p>
+                              <p className="text-xs text-muted-foreground">{p.subtitle}</p>
+                              <div className="flex gap-1 mt-0.5">
+                                {p.spicy && <Flame className="w-3 h-3 text-orange-500" />}
+                                {p.vegetarian && <Leaf className="w-3 h-3 text-green-500" />}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 capitalize text-muted-foreground">{p.category}</td>
-                    <td className="px-4 py-3 font-medium">${p.basePrice?.toLocaleString('es-AR')}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-2">
-                        {p.stock === 0
-                          ? <PackageX className="w-4 h-4 text-red-500" />
-                          : <Package className={`w-4 h-4 ${stockColor(p.stock)}`} />
-                        }
-                        <input
-                          type="number"
-                          min="0"
-                          value={stockEdit[p.id] !== undefined ? stockEdit[p.id] : p.stock}
-                          onChange={e => handleStockChange(p.id, e.target.value)}
-                          className={`w-16 text-center border rounded-md px-2 py-1 text-sm font-semibold
-                            focus:outline-none focus:ring-2 focus:ring-primary
-                            ${stockColor(p.stock)}`}
-                        />
-                        {stockEdit[p.id] !== undefined && (
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0"
-                            onClick={() => saveStock(p.id)} disabled={saving}>
-                            <Save className="w-3.5 h-3.5 text-green-600" />
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-1">
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0"
-                          onClick={() => openEdit(p)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                          onClick={() => handleDelete(p.id, p.name)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filtered.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">No hay productos</div>
+                        </td>
+                        <td className="px-4 py-3 capitalize text-muted-foreground">{p.category}</td>
+                        <td className="px-4 py-3 font-medium">${p.basePrice?.toLocaleString('es-AR')}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-2">
+                            {p.stock === 0
+                              ? <PackageX className="w-4 h-4 text-red-500" />
+                              : <Package className={`w-4 h-4 ${stockColor(p.stock)}`} />
+                            }
+                            <input
+                              type="number" min="0"
+                              value={stockEdit[p.id] !== undefined ? stockEdit[p.id] : p.stock}
+                              onChange={e => handleStockChange(p.id, e.target.value)}
+                              className={`w-16 text-center border rounded-md px-2 py-1 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary ${stockColor(p.stock)}`}
+                            />
+                            {stockEdit[p.id] !== undefined && (
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0"
+                                onClick={() => saveStock(p.id)} disabled={saving}>
+                                <Save className="w-3.5 h-3.5 text-green-600" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEdit(p)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                              onClick={() => handleDelete(p.id, p.name)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {filtered.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">No hay productos</div>
+                )}
+              </div>
             )}
           </div>
         )}
+
+        {/* ── PESTAÑA CUPONES ── */}
+        {activeTab === 'coupons' && (
+          <div className="space-y-8">
+
+            {/* Formulario nuevo cupón */}
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-primary" /> Nuevo cupón
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Código</label>
+                  <input
+                    placeholder="ej: VERANO20"
+                    value={couponForm.code}
+                    onChange={e => setCouponForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                    className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background uppercase"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Tipo</label>
+                  <select
+                    value={couponForm.type}
+                    onChange={e => setCouponForm(f => ({ ...f, type: e.target.value }))}
+                    className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+                  >
+                    <option value="percent">Porcentaje (%)</option>
+                    <option value="fixed">Monto fijo ($)</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                    {couponForm.type === 'percent' ? 'Porcentaje (%)' : 'Monto ($)'}
+                  </label>
+                  <input
+                    type="number"
+                    placeholder={couponForm.type === 'percent' ? 'ej: 15' : 'ej: 500'}
+                    value={couponForm.value}
+                    onChange={e => setCouponForm(f => ({ ...f, value: e.target.value }))}
+                    className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Descripción</label>
+                  <input
+                    placeholder="ej: 15% de descuento"
+                    value={couponForm.label}
+                    onChange={e => setCouponForm(f => ({ ...f, label: e.target.value }))}
+                    className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+                  />
+                </div>
+              </div>
+              <Button
+                className="mt-4 gap-2"
+                disabled={!couponForm.code || !couponForm.value || couponSaving}
+                onClick={handleAddCoupon}
+              >
+                {couponSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                Agregar cupón
+              </Button>
+            </div>
+
+            {/* Lista de cupones */}
+            <div className="rounded-xl border border-border overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Código</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Tipo</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Descuento</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Descripción</th>
+                    <th className="text-center px-4 py-3 font-medium text-muted-foreground">Estado</th>
+                    <th className="text-center px-4 py-3 font-medium text-muted-foreground">Eliminar</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {coupons.map(c => (
+                    <tr key={c.code} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <span className="font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                          {c.code}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {c.type === 'percent' ? 'Porcentaje' : 'Monto fijo'}
+                      </td>
+                      <td className="px-4 py-3 font-semibold">
+                        {c.type === 'percent' ? `${c.value}%` : `$${Number(c.value).toLocaleString('es-AR')}`}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{c.label}</td>
+                      <td className="px-4 py-3 text-center">
+                        <button onClick={() => toggleCoupon(c.code, !c.active)}>
+                          {c.active
+                            ? <ToggleRight className="w-6 h-6 text-emerald-500 mx-auto" />
+                            : <ToggleLeft className="w-6 h-6 text-muted-foreground mx-auto" />
+                          }
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => { if (confirm(`¿Eliminar cupón "${c.code}"?`)) deleteCoupon(c.code); }}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 mx-auto" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {coupons.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="text-center py-10 text-muted-foreground">No hay cupones</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       </div>
 
-      {/* Modal formulario */}
+      {/* Modal formulario producto */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg my-8 p-6 space-y-5">
@@ -274,15 +427,13 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Tamaños */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Precios por tamaño</Label>
               {form.sizes.map((s, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground w-20">{s.name} {s.inches}</span>
                   <Input
-                    type="number"
-                    placeholder="Precio"
+                    type="number" placeholder="Precio"
                     value={s.price}
                     onChange={e => handleSizeChange(i, 'price', e.target.value)}
                     className="flex-1"
@@ -291,7 +442,6 @@ export default function Admin() {
               ))}
             </div>
 
-            {/* Flags */}
             <div className="flex gap-6">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.spicy} onChange={e => handleFormChange('spicy', e.target.checked)} className="rounded" />

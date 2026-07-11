@@ -156,7 +156,7 @@ export default function CartDrawer() {
 
                     {/* Remove */}
                     <button
-                      onClick={() => removeItem(item.key)}
+                      onClick={() => removeItem(item.id, item.size)}
                       className="self-start mt-0.5 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
